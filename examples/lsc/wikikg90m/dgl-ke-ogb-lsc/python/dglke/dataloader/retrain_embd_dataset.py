@@ -16,7 +16,7 @@ class WikiKG90MDatasetEnsemble_retrain(WikiKG90MDataset):
         self._train_fewer_hrt = None
         self._train_upsample_hrt = None
         self._retrain_hrt = None
-        self._train_hrt = np.concatenate((self._train_hrt, np.load('/disk4/ogb/link_level/dataset/wikikg90m_kddcup2021/processed/trian_val_topk_add_h.npy')))
+        self._train_hrt = np.concatenate((self._train_hrt, np.load(osp.join(self.processed_dir, 'trian_val_topk_add_h.npy'))))
 
     @property
     def train_val_hrt(self) -> np.ndarray:
@@ -24,7 +24,7 @@ class WikiKG90MDatasetEnsemble_retrain(WikiKG90MDataset):
 
         '''
         if self._train_val_hrt is None:
-            path3 = '/disk4/ogb/link_level/dataset/wikikg90m_kddcup2021/processed/val_hrt_wyk.npy'
+            path3 = osp.join(self.processed_dir, 'val_hrt_wyk.npy')
             self._train_val_hrt = np.load(path3)
             print("Training dataset with validation have %d samples" % self._train_val_hrt.shape[0])
         return self._train_val_hrt
@@ -35,23 +35,10 @@ class WikiKG90MDatasetEnsemble_retrain(WikiKG90MDataset):
 
         '''
         if self._retrain_hrt is None:
-            path3 = '/disk4/ogb/link_level/dataset/wikikg90m_kddcup2021/processed/trian_for_finetune.npy'
-            # /disk4/ogb/link_level/dataset/wikikg90m_kddcup2021/processed/trian_for_finetune.npy
+            path3 = osp.join(self.processed_dir, 'trian_for_finetune.npy')
             self._retrain_hrt = np.load(path3)
             print("Training dataset with validation have %d samples" % self._retrain_hrt.shape[0])
         return self._retrain_hrt
-
-    @property
-    def train_fewer_hrt(self) -> np.ndarray:
-        '''
-            using fewer train data for training
-        '''
-        if self._train_fewer_hrt is None:
-            # path = '/disk4/ogb/link_level/dataset/metapath_feat/top1_tail_filter_pairre_train.npy'
-            path = '/disk4/ogb/link_level/dataset/wikikg90m_kddcup2021/processed/generator_new_trian.npy'
-            self._train_fewer_hrt = np.load(path)
-            print("Training dataset with filter have %d samples" % self._train_fewer_hrt.shape[0])
-        return self._train_fewer_hrt
 
     @property
     def train_upsample_hrt(self) -> np.ndarray:
@@ -59,9 +46,7 @@ class WikiKG90MDatasetEnsemble_retrain(WikiKG90MDataset):
             using upsample train data for training
         '''
         if self._train_upsample_hrt is None:
-            path1 = '/disk4/ogb/link_level/dataset/metapath_feat/top1_tail_filter_pairre_train.npy'
-            path2 = '/disk4/ogb/link_level/dataset/wikikg90m_kddcup2021/processed/generator_new_trian.npy'
-            self._train_upsample_hrt = np.concatenate((self._train_hrt, np.load(path1), np.load(path2)))
+            self._train_upsample_hrt = self._train_hrt
             print("Training dataset with filter have %d samples" % self._train_upsample_hrt.shape[0])
         return self._train_upsample_hrt
 
@@ -90,7 +75,6 @@ class WikiKG90MDatasetEnsemble_retrain(WikiKG90MDataset):
     def other_entity_feat(self) -> np.ndarray:
         if self._other_entity_feat is None:
             path = osp.join(self.processed_dir, 'entity_feat.npy')
-            # path = '/disk4/ogb/link_level/dataset/metapath_feat/node_metapath_feat.npy'
             self._other_entity_feat = np.load(path, mmap_mode='r')
         return self._other_entity_feat
 
@@ -119,7 +103,6 @@ class WikiKG90MDatasetEnsemble_retrain(WikiKG90MDataset):
     def all_entity_feat(self) -> np.ndarray:
         if self._all_entity_feat is None:
             path = osp.join(self.original_root, 'entity_feat.npy')
-            # path = "/disk4/ogb/link_level/dataset/metapath_feat/node_metapath_feat.npy"
             self._all_entity_feat = np.load(path)
         return self._all_entity_feat
 
@@ -157,7 +140,6 @@ class WikiKG90MDatasetEnsembleTrainNFeat(WikiKG90MDataset):
     def other_entity_feat(self) -> np.ndarray:
         if self._other_entity_feat is None:
             path = osp.join(self.processed_dir, 'entity_feat.npy')
-            # path = '/disk4/ogb/link_level/dataset/metapath_feat/node_metapath_feat.npy'
             self._other_entity_feat = np.load(path, mmap_mode='r')
         return self._other_entity_feat
 
@@ -186,7 +168,6 @@ class WikiKG90MDatasetEnsembleTrainNFeat(WikiKG90MDataset):
     def all_entity_feat(self) -> np.ndarray:
         if self._all_entity_feat is None:
             path = osp.join(self.original_root, 'entity_feat.npy')
-            # path = "/disk4/ogb/link_level/dataset/metapath_feat/node_metapath_feat.npy"
             self._all_entity_feat = np.load(path)
         return self._all_entity_feat
 
