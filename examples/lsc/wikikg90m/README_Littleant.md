@@ -1,5 +1,10 @@
 # Data Process
-```python ./dglke/generate_data.py```
+
+
+### 2 Data Upsamping
+After analyzing the results of several models, we found that the model generally has poor standard intervals on a specific data set. This part of the data is used as a tail in the training set less frequently, so in order to improve the model in this part For data representation, we upsample this part of the data, and in the final test scoring stage, we add the validation set into the training set.
+
+```python ./dglke/generate_data_upsample.py```
 
 
 # Model Training
@@ -33,4 +38,5 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python dglke/ensemble_on_valid.py --num_pro
    
 ### 4 Reranking Result on A Specific dataset
   As Ensemble Model has higher Recall and Upsampling Model has higher Accuary, Finaly Result is improved by rescore ensemble model prediction with Upsampling Model's result
- ``` python "xxxxxxxx"```
+ 
+ ``` python ./dglke/general_final_res_by_rerank.py```
