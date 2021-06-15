@@ -5,7 +5,6 @@ from dglke.dataloader import EvalDataset
 from dglke.train_pytorch import load_model, test_mp, ensemble_mp
 from dglke.dataloader import get_dataset
 from dglke.models.ensemble_valid_models import EnsembleValidModel
-from dglke.models.ensemble_valid_models_nfeat import EnsembleValidWithNodeFeatModel
 from dglke.train_pytorch import test
 from ogb.lsc import WikiKG90MDataset, WikiKG90MEvaluator
 import sys as _sys
@@ -201,32 +200,18 @@ def main():
                           args_m1.has_edge_importance)
     '''
     dataset = KGDatasetWikiEnsemble(sys_args)
-    if not sys_args.use_valid_nfeat:
-        ensemble_model = EnsembleValidModel(sys_args, sys_args.embed_version, "ensemble_valid_model", dataset.n_entities,
-                                            dataset.n_relations, sys_args.dim, sys_args.gamma,
-                                            double_entity_emb=sys_args.double_ent, double_relation_emb=sys_args.double_rel,
-                                            ent_feat_dim=dataset.entity_feat.shape[1],
-                                            other_ent_feat_dim=dataset.other_entity_feat.shape[1],
-                                            rel_feat_dim=dataset.relation_feat.shape[1])
-        ensemble_model.entity_feat.emb = dataset.entity_feat
-        ensemble_model.other_entity_feat.emb = dataset.other_entity_feat
-        ensemble_model.relation_feat.emb = dataset.relation_feat
-        ensemble_model.share_memory()
-    else:
-        ensemble_model = EnsembleValidWithNodeFeatModel(
-            sys_args, sys_args.embed_version, "ensemble_valid_model", dataset.n_entities,
-            dataset.n_relations, sys_args.dim, sys_args.gamma,
-            double_entity_emb=sys_args.double_ent, double_relation_emb=sys_args.double_rel,
-            ent_feat_dim=dataset.entity_feat.shape[1],
-            other_ent_feat_dim=dataset.other_entity_feat.shape[1],
-            rel_feat_dim=dataset.relation_feat.shape[1],
-            other_valid_nfeat_dim=dataset.other_nfeat_valid.shape[1]
-        )
-        ensemble_model.entity_feat.emb = dataset.entity_feat
-        ensemble_model.other_entity_feat.emb = dataset.other_entity_feat
-        ensemble_model.relation_feat.emb = dataset.relation_feat
-        ensemble_model.other_valid_nfeat.emb = dataset.other_nfeat_valid
-        ensemble_model.share_memory()
+
+    ensemble_model = EnsembleValidModel(sys_args, sys_args.embed_version, "ensemble_valid_model", dataset.n_entities,
+                                        dataset.n_relations, sys_args.dim, sys_args.gamma,
+                                        double_entity_emb=sys_args.double_ent, double_relation_emb=sys_args.double_rel,
+                                        ent_feat_dim=dataset.entity_feat.shape[1],
+                                        other_ent_feat_dim=dataset.other_entity_feat.shape[1],
+                                        rel_feat_dim=dataset.relation_feat.shape[1])
+    ensemble_model.entity_feat.emb = dataset.entity_feat
+    ensemble_model.other_entity_feat.emb = dataset.other_entity_feat
+    ensemble_model.relation_feat.emb = dataset.relation_feat
+    ensemble_model.share_memory()
+
 
     if sys_args.rerun:
         model_1 = None
