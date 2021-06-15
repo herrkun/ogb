@@ -1,3 +1,8 @@
+# Data Process
+```python ./dglke/generate_data.py```
+
+
+# Model Training
 ### 1 Training Model for Ensemble
    Training two different models for capturing multy features
 #### 1.1 Training PairRE Model
