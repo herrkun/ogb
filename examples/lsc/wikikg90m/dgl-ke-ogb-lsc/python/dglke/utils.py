@@ -203,7 +203,7 @@ class CommonArgParser(argparse.ArgumentParser):
         self.add_argument('--model_name', default='TransE',
                           choices=['TransE', 'TransE_l1', 'TransE_l2', 'TransR',
                                    'RESCAL', 'DistMult', 'ComplEx', 'RotatE',
-                                   'SimplE'],
+                                   'SimplE', 'PairRE', 'AutoSF'],
                           help='The models provided by DGL-KE.')
         self.add_argument('--data_path', type=str, default='data',
                           help='The path of the directory where DGL-KE loads knowledge graph data.')
@@ -226,12 +226,12 @@ class CommonArgParser(argparse.ArgumentParser):
                           help='the path of the directory where models and logs are saved.')
         self.add_argument('--no_save_emb', action='store_true',
                           help='Disable saving the embeddings under save_path.')
-        self.add_argument('--max_step', type=int, default=1000000,
+        self.add_argument('--max_step', type=int, default=1200000,
                           help='The maximal number of steps to train the model.'\
                                   'A step trains the model with a batch of data.')
-        self.add_argument('--batch_size', type=int, default=400,
+        self.add_argument('--batch_size', type=int, default=512,
                           help='The batch size for training.')
-        self.add_argument('--batch_size_eval', type=int, default=50,
+        self.add_argument('--batch_size_eval', type=int, default=512,
                           help='The batch size used for validation and test.')
         self.add_argument('--neg_sample_size', type=int, default=100,
                           help='The number of negative samples we use for each positive sample in the training.')
@@ -250,7 +250,7 @@ class CommonArgParser(argparse.ArgumentParser):
                           help='Disable filter positive edges from randomly constructed negative edges for evaluation')
         self.add_argument('-log', '--log_interval', type=int, default=1000,
                           help='Print runtime of different components every x steps.')
-        self.add_argument('--eval_interval', type=int, default=50000,
+        self.add_argument('--eval_interval', type=int, default=200000,
                           help='Print evaluation results on the validation dataset every x steps'\
                                   'if validation is turned on')
         self.add_argument('--test', action='store_true',
