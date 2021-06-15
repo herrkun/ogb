@@ -5,6 +5,7 @@ import tqdm
 import os
 import time
 from math import ceil
+import argparse 
 
 
 def secondsToStr(seconds):
@@ -100,4 +101,19 @@ def general_finally_res_test(step, proc_num, path, ensem_v1_path, ensem_v2_path,
 
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--path',  help='path dir of data')
+    parser.add_argument('--ensem_v1_path',  help='path of model 1 of ensemble') 
+    parser.add_argument('--ensem_v2_path',  help='path of model 2 of ensemble') 
+    parser.add_argument('--pure_model_path',  help='path of new model which trained by upsampleing training dataset') 
+
+    args = parser.parse_args() 
+
+    path = args.path
+    ensem_v1_path = args.ensem_v1_path
+    ensem_v2_path = args.ensem_v2_path
+    pure_model_path = args.pure_model_path
+
     general_finally_res_test(step, proc_num, path, ensem_v1_path, ensem_v2_path, pure_model_path)
+
