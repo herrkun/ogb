@@ -4,9 +4,17 @@
   ```CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 dglke_train_val --model_name PairRE --hidden_dim 100 --gamma 10 --lr 0.1 --regularization_coef 1e-9 --mlp_lr 0.00001 --valid -adv --num_proc 4 --num_thread 4 --gpu 0 1 2 3 --force_sync_interval 100000 --max_step 800000 --eval_interval 100000 --train_with_val --neg_sample_size 100 --eval_percent 0.1 --topk 20  --print_on_screen --encoder_model_name concat -de -dr  --save_path "xxxxxxxx"```
 #### 1.2 Training RotatE Model
   ```CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 dglke_train_val --model_name RotatE --hidden_dim 100 --gamma 10 --lr 0.1 --regularization_coef 1e-9 --mlp_lr 0.00001 --valid -adv --num_proc 4 --num_thread 4 --gpu 4 5 6 7 --force_sync_interval 100000 --max_step 1100000 --eval_interval 100000 --train_with_val --neg_sample_size 100 --eval_percent 0.1 --topk 20  --print_on_screen --encoder_model_name concat -de  --save_path "xxxxxxxxx"```
-  
-#### 1.3 Training Ensemble Model
-```Filling by YS or ZDY   ohou```
+
+#### 1.3 Training Model with Node Features
+``` 
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 dglke_ensemble_train --model_name ${model_name} --hidden_dim 100 --gamma 10 --lr 0.08 --regularization_coef 1e-9 --mlp_lr 0.00001 --valid -adv --num_proc 4 --num_thread 4 --gpu 0 1 2 3 --force_sync_interval 100000 --max_step 1500000 --eval_interval 100000 --print_on_screen --encoder_model_name concat -de -dr --save_path ${save_path}
+```
+
+#### 1.4 Training Ensemble Model
+``` 
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python dglke/ensemble_on_valid.py --num_proc 4 --gpu 0 1 2 3 --embed_version feat --m1_path ${model1_path} --m2_path ${model2_path} --save_path ${ensemble_model_path}
+```
+
 
 ### 2 Training Model With More Data
    Upsampling some datasets that appear frequently on the validation set but appear less on the training set as Model can not learn well on these datsets.
