@@ -639,3 +639,194 @@ class SimplEScore(nn.Module):
                 score = th.clamp(tmp, -20, 20)
                 return score
             return fn
+
+
+class PairREScore(nn.Module):
+    """RotatE score function
+    Paper link: https://arxiv.org/abs/1902.10197
+    """
+    def __init__(self, gamma, emb_init):
+        super(PairREScore, self).__init__()
+        self.gamma = gamma
+        self.emb_init = emb_init
+
+    def edge_func(self, edges):
+        re_head, im_head = th.chunk(edges.src['emb'], 2, dim=-1)
+        re_tail, im_tail = th.chunk(edges.dst['emb'], 2, dim=-1)
+        phase_rel = edges.data['emb'] / (self.emb_init / np.pi)
+        re_rel, im_rel = th.cos(phase_rel), th.sin(phase_rel)
+        re_relation_head, re_relation_tail = th.chunk(re_rel, 2, dim=-1)
+        im_relation_head, im_relation_tail = th.chunk(im_rel, 2, dim=-1)
+        head_re_score = re_head * re_relation_head - im_head * im_relation_head
+        head_im_score = re_head * im_relation_head + im_head * re_relation_head
+        tail_re_score = re_tail * re_relation_tail - im_tail * im_relation_tail
+        tail_im_score = re_tail * im_relation_tail + im_tail * re_relation_tail
+        re_score = head_re_score - tail_re_score
+        im_score = head_im_score - tail_im_score
+        score = th.stack([re_score, im_score], dim=0)
+        score = score.norm(dim=0)
+        return {'score': self.gamma - score.sum(-1)}
+
+    def infer(self, head_emb, rel_emb, tail_emb):
+        raise NotImplementedError('PairRE infer not exists!')
+
+
+    def update(self, gpu_id=-1):
+        pass
+
+    def reset_parameters(self):
+        pass
+
+    def save(self, path, name):
+        pass
+
+    def load(self, path, name):
+        pass
+
+    def forward(self, g):
+        g.apply_edges(lambda edges: self.edge_func(edges))
+
+    def create_neg_prepare(self, neg_head):
+        def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
+            return head, tail
+        return fn
+
+    def prepare(self, g, gpu_id, trace=False):
+        pass
+
+    def create_neg(self, neg_head):
+        gamma = self.gamma
+        emb_init = self.emb_init
+        if neg_head:
+            def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
+                hidden_dim = heads.shape[1]
+                phase_rel = relations / (emb_init / np.pi)
+                rel_real, rel_imag = th.cos(phase_rel), th.sin(phase_rel)
+                head_rel_real, tail_rel_real = rel_real[..., :hidden_dim // 2], rel_real[..., hidden_dim // 2:]
+                head_rel_imag, tail_rel_imag = rel_imag[..., :hidden_dim // 2], rel_imag[..., hidden_dim // 2:]
+
+                head_emb_real = heads[..., :hidden_dim // 2]
+                head_emb_imag = heads[..., hidden_dim // 2:]
+                head_real = head_emb_real * head_rel_real - head_emb_imag * head_rel_imag
+                head_imag = head_emb_real * head_rel_imag + head_emb_imag * head_rel_real
+                head_emb_complex = th.cat((head_real, head_imag), dim=-1)
+
+                tail_emb_real = tails[..., :hidden_dim // 2]
+                tail_emb_imag = tails[..., hidden_dim // 2:]
+                tail_real = tail_emb_real * tail_rel_real - tail_emb_imag * tail_rel_imag
+                tail_imag = tail_emb_real * tail_rel_imag + tail_emb_imag * tail_rel_real
+                tail_emb_complex = th.cat((tail_real, tail_imag), dim=-1)
+
+                tails_tmp = tail_emb_complex.reshape(num_chunks, chunk_size, 1, hidden_dim)
+                heads_tmp = head_emb_complex.reshape(num_chunks, 1, neg_sample_size, hidden_dim)
+                score = heads_tmp - tails_tmp
+                score = th.stack([score[..., :hidden_dim // 2],
+                                  score[..., hidden_dim // 2:]], dim=-1).norm(dim=-1)
+                return gamma - score.sum(-1)
+
+            return fn
+        else:
+            def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
+                hidden_dim = heads.shape[1]
+                phase_rel = relations / (emb_init / np.pi)
+                rel_real, rel_imag = th.cos(phase_rel), th.sin(phase_rel)
+                ar1, ar2 = rel_real[..., :hidden_dim // 2], rel_real[..., hidden_dim // 2:]
+                br1, br2 = rel_imag[..., :hidden_dim // 2], rel_imag[..., hidden_dim // 2:]
+                ah, bh = heads[..., :hidden_dim // 2], heads[..., hidden_dim // 2:]
+
+                head_real = ah * ar1 * ar2 - bh * br1 * ar2 + ah * br1 * br2 + bh * ar1 * br2
+                head_imag = -ah * ar1 * br2 + bh * br1 * br2 + ah * br1 * ar2 + bh * ar1 * ar2
+                head_emb_complex = th.cat((head_real, head_imag), dim=-1)
+                tmp = head_emb_complex.reshape(num_chunks, chunk_size, 1, hidden_dim)
+
+                tails = tails.reshape(num_chunks, 1, neg_sample_size, hidden_dim)
+                score = tmp - tails
+                score = th.stack([score[..., :hidden_dim // 2],
+                                  score[..., hidden_dim // 2:]], dim=-1).norm(dim=-1)
+
+                return gamma - score.sum(-1)
+            return fn
+
+        
+class AutoSFScore(nn.Module):
+    """AutoSF score function
+    Paper link: https://arxiv.org/abs/1902.10197
+    """
+    def __init__(self):
+        super(AutoSFScore, self).__init__()
+
+
+    def edge_func(self, edges):
+        hs = th.chunk(edges.src['emb'], 4, dim=-1)
+        # ts = th.chunk(edges.dst['emb'], 4, dim=-1)
+        rs = th.chunk(edges.data['emb'], 4, dim=-1)
+        hr0 = hs[0] * rs[0]
+        hr1 = hs[1] * rs[1] - hs[3] * rs[1]
+        hr2 = hs[2] * rs[0] + hs[3] * rs[3]
+        hr3 = hs[1] * rs[2] + hs[2] * rs[2]
+        hrs = th.cat([hr0, hr1, hr2, hr3], dim=-1)
+        score = th.sum(hrs * edges.dst['emb'], dim=-1)
+        return {'score': score}
+
+    def infer(self, head_emb, rel_emb, tail_emb):
+        raise NotImplementedError('AutoSF infer not exists!')
+
+
+    def update(self, gpu_id=-1):
+        pass
+
+    def reset_parameters(self):
+        pass
+
+    def save(self, path, name):
+        pass
+
+    def load(self, path, name):
+        pass
+
+    def forward(self, g):
+        g.apply_edges(lambda edges: self.edge_func(edges))
+
+    def create_neg_prepare(self, neg_head):
+        def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
+            return head, tail
+        return fn
+
+    def prepare(self, g, gpu_id, trace=False):
+        pass
+
+    def create_neg(self, neg_head):
+        if neg_head:
+            def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
+                dim = heads.shape[1]
+                rs = relations[..., :dim // 4], relations[..., dim // 4: dim // 2], \
+                     relations[..., dim // 2: dim // 4 * 3], relations[..., dim // 4 * 3:]
+                ts = tails[..., :dim // 4], tails[..., dim // 4: dim // 2], \
+                     tails[..., dim // 2: dim // 4 * 3], tails[..., dim // 4 * 3:]
+                rt0 = rs[0] * ts[0]
+                rt1 = rs[1] * ts[1] + rs[2] * ts[3]
+                rt2 = rs[0] * ts[2] + rs[2] * ts[3]
+                rt3 = -rs[1] * ts[1] + rs[3] * ts[2]
+                rts = th.cat([rt0, rt1, rt2, rt3], dim=-1)
+                rts_tmp = rts.reshape(num_chunks, chunk_size, dim)
+                heads_tmp = heads.reshape(num_chunks, neg_sample_size, dim)
+                heads_tmp = th.transpose(heads_tmp, 1, 2)
+                return th.bmm(rts_tmp, heads_tmp)
+            return fn
+        else:
+            def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
+                dim = heads.shape[1]
+                hs = heads[..., :dim // 4], heads[..., dim // 4: dim // 2], \
+                     heads[..., dim // 2: dim // 4 * 3], heads[..., dim // 4 * 3:]
+                rs = relations[..., :dim // 4], relations[..., dim // 4: dim // 2], \
+                     relations[..., dim // 2: dim // 4 * 3], relations[..., dim // 4 * 3:]
+                hr0 = hs[0] * rs[0]
+                hr1 = hs[1] * rs[1] - hs[3] * rs[1]
+                hr2 = hs[2] * rs[0] + hs[3] * rs[3]
+                hr3 = hs[1] * rs[2] + hs[2] * rs[2]
+                hrs = th.cat([hr0, hr1, hr2, hr3], dim=-1)
+                hrs_tmp = hrs.reshape(num_chunks, chunk_size, dim)
+                tails_tmp = tails.reshape(num_chunks, neg_sample_size, dim)
+                tails_tmp = th.transpose(tails_tmp, 1, 2)
+                return th.bmm(hrs_tmp, tails_tmp)
+            return fn
