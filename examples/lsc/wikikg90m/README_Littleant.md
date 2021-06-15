@@ -39,4 +39,4 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python dglke/ensemble_on_valid.py --num_pro
 ### 4 Reranking Result on A Specific dataset
   As Ensemble Model has higher Recall and Upsampling Model has higher Accuary, Finaly Result is improved by rescore ensemble model prediction with Upsampling Model's result
  
- ``` python ./dglke/general_final_res_by_rerank.py --path /ogb/link_level/dataset/wikikg90m_kddcup2021/processed/ --ensem_v1_path ${ensemble_model_path_1} --ensem_v2_path ${ensemble_model_path_1} --pure_model_path ${upsample_model_path} ```
+ ``` python ./dglke/generate_finaly_res.py --path /ogb/link_level/dataset/wikikg90m_kddcup2021/processed/ --ensem_v1_path ${ensemble_model_path_1} --ensem_v2_path ${ensemble_model_path_1} --pure_model_path ${upsample_model_path} --t_threshold ${t_threshold} --v_threshold ${v_threshold} ```
