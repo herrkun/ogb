@@ -57,6 +57,8 @@ class ArgParser(CommonArgParser):
                                   'This is usually used for training a large knowledge graph embeddings.')
         self.add_argument('--valid', action='store_true',
                           help='Evaluate the model on the validation set in the training.')
+        self.add_argument('--valid_with_train_data', action='store_true',
+                          help='validation on 0.001 training data')
         self.add_argument('--rel_part', action='store_true',
                           help='Enable relation partitioning for multi-GPU training.')
         self.add_argument('--async_update', action='store_true',
@@ -72,6 +74,8 @@ class ArgParser(CommonArgParser):
                           help='shallow or roberta or concat')
         self.add_argument('--mlp_lr', type=float, default=0.0001,
                           help='The learning rate of optimizing mlp')
+        self.add_argument('--topk', type=int, default=10,
+                          help='The number of topk in valid and test')
         self.add_argument('--seed', type=int, default=0,
                           help='random seed')
 
@@ -115,7 +119,7 @@ def main():
 
     init_time_start = time.time()
     # load dataset and samplers
-    dataset = get_dataset(args.data_path,
+    dataset = get_dataset(args, args.data_path,
                           args.dataset,
                           args.format,
                           args.delimiter,
@@ -151,6 +155,7 @@ def main():
     # if there is no cross partition relaiton, we fall back to strict_rel_part
     args.strict_rel_part = args.mix_cpu_gpu and (train_data.cross_part == False)
     args.num_workers = 8 # fix num_worker to 8
+    args.num_thread = 1 # fix num_thread to 1
     set_logger(args)
     with open(os.path.join(args.save_path, args.encoder_model_name), 'w') as f:
         f.write(args.encoder_model_name)
