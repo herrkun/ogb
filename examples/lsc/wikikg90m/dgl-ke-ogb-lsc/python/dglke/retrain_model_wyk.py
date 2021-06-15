@@ -73,7 +73,8 @@ def main():
     args = Namespace(**config)
     args.num_proc = sys_args.num_proc
     args.gpu = sys_args.gpu
-    args.test = True
+    args.test = True           # modify args for retrain
+    args.retrain = True
     print(args)
     set_global_seed(args.seed)
     set_logger(args)
