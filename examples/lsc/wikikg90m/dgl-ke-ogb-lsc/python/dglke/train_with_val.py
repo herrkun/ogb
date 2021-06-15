@@ -60,6 +60,8 @@ class ArgParser(CommonArgParser):
                           help='Evaluate the model on the validation set in the training.')
         self.add_argument('--train_with_val', action='store_true',
                           help='whether include valditation when training.')
+        self.add_argument('--retrain', action='store_true',
+                          help='whether include valditation when training.')
         self.add_argument('--train_fewer', action='store_true',
                           help='filter training dataset with no. of tails for few-shot train.')
         self.add_argument('--train_upsample', action='store_true',
