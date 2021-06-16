@@ -2,7 +2,7 @@
 
 
 ###  Data Upsamping
-After analyzing the results of several models, we found that the model generally has poor standard intervals on a specific data set. This part of the data is used as a tail in the training set less frequently, so in order to improve the model in this part For data representation, we upsample this part of the data, and in the final test scoring stage, we add the validation set into the training set.
+After analyzing the results of several models, we found that the model generally has poor standard intervals on a specific data set. The confidence of this part of the data is low, so in order to improve the model in this part For data representation, we upsample this part of the data, and in the final test scoring stage, we add the validation set into the training set.
 
 ```python ./dglke/generate_data_upsample.py```
 
