@@ -27,7 +27,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python dglke/ensemble_on_valid.py --num_pro
 
 
 ### 2 Training Model With More Data
-   Upsampling some datasets that appear frequently on the validation set but appear less on the training set as Model can not learn well on these datsets.
    
    ```CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 dglke_train_val --model_name PairRE --hidden_dim 100 --gamma 10 --lr 0.1 --regularization_coef 1e-9 --mlp_lr 0.00001 --valid -adv --num_proc 4 --num_thread 4 --gpu 4 5 6 7 --force_sync_interval 100000 --max_step 2500000 --eval_interval 100000 --train_with_val --neg_sample_size 100 --eval_percent 0.1 --topk 30 --test --print_on_screen --encoder_model_name concat -de -dr  --save_path ${upsample_model_path}```
    
